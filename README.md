@@ -1,2 +1,2 @@
 # vocals
-vocals: App created with an API for lyrics of songs.
+vocals: App created with laravel/PHP an API for lyrics of songs.
