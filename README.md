@@ -7,5 +7,5 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Bocals
+## About Vocals
 Vocals is created by me using laravel with an API and a client will be created using Angular 17
