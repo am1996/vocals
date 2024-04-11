@@ -1,0 +1,1 @@
+<a class="navbar-brand" href="/"><l class="text-warning">V</l>ocals</a>
