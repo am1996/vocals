@@ -66,29 +66,29 @@ class APIUserController extends Controller
     public function updatePassword(Request $request)
     {
         # Validation
-        $request->validate([
+        $request->validate(rules: [
             'old_password' => 'required',
             'new_password' => 'required|confirmed',
         ]);
 
 
         #Match The Old Password
-        if(!Hash::check($request->old_password, auth()->user()->password))
-            return back()->with("error", "Old Password Doesn't match!");
+        if(!Hash::check(value: $request->old_password, hashedValue: auth()->user()->password))
+            return back()->with(key: "error", value: "Old Password Doesn't match!");
 
         if(!$request->new_password == $request->new_password_confirmation)
-            return back()->with("error", "Password and repeat password don't match");
+            return back()->with(key: "error", value: "Password and repeat password don't match");
         #Update the new Password
         User::whereId(auth()->user()->id)->update([
-            'password' => Hash::make($request->new_password)
+            'password' => Hash::make(value: $request->new_password)
         ]);
 
-        return back()->with("status", "Password changed successfully!");
+        return back()->with(key: "status", value: "Password changed successfully!");
     }
     public function logout()
     {
         auth()->logout();
         Session()->flush();
-        return Redirect::to('/');
+        return Redirect::to(path: '/');
     }
 }
