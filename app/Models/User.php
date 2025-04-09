@@ -9,13 +9,12 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
-{
+class User extends Authenticatable implements JWTSubject{
     use HasApiTokens, HasFactory, Notifiable;
 
     public function getJWTIdentifier()
     {
-        return $this->getKey();
+        return $this->id;
     }
     public function getJWTCustomClaims()
     {
@@ -51,4 +50,5 @@ class User extends Authenticatable implements JWTSubject
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    
 }

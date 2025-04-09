@@ -1,23 +1,22 @@
 <?php
 
-use App\Http\Controllers\APISongs;
-use App\Http\Controllers\UserController;
-use App\Models\Song;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\APISongController;
+use App\Http\Controllers\APIUserController;
+use App\Http\Middleware\JwtMiddleware;
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::prefix("users")->group(function(){
+    Route::post("/register",[APIUserController::class,"register"]);
+    Route::post("/login",[APIUserController::class,"login"]);
+});
+Route::middleware(JwtMiddleware::class)->prefix("users")->group(function(){
+    Route::post("/edit",[APIUserController::class,"edit"]);
 });
 
-Route::prefix("user")->group(function(){
-    Route::post("register",[UserController::class,"register"]);
+Route::middleware(JwtMiddleware::class)->prefix("songs")->group(function(){
+    Route::post("/create",[APISongController::class,"create"]);
 });
-
-Route::middleware("auth")->prefix("songs")->group(function(){
+Route::prefix("songs")->group(function(){
     Route::get('/', [APISongController::class,"all"]);
     Route::get('/search',[APISongController::class,"search"]);
-    Route::post("/create",[APISongController::class,"create"]);
-    Route::get('/{id}', [APISongController::class,"getById"]);
 });

@@ -9,53 +9,62 @@ use Illuminate\Support\Facades\Redirect;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class APIUserController extends Controller
 {
-    public function authenticate(Request $request)
+    public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
-            return redirect()->route('index')
-                ->withSuccess('You have successfully logged in!');
+        $credentials = $request->only('email', 'password');
+
+        try {
+            if (! JWTAuth::attempt($credentials)) {
+                return response()->json(['message' => 'Invalid credentials'], 401);
+            }
+        } catch (JWTException $e) {
+            return response()->json(['message' => 'Could not create token'], 500);
         }
-        return back()->withErrors([
-            'email' => 'Your provided credentials do not match in our records.',
-        ])->onlyInput('email');
+
+        $user = JWTAuth::user();
+        unset($user->randtoken);
+        $token = JWTAuth::fromUser($user);
+        $name = $user->name;
+        $email = $user->email;
+
+        return response()->json(compact('name','email', 'token'));
     }
 
-    public function register(UserRequest $request)
-    {
-        User::create([
+    public function register(Request $request){
+        if(User::where('email', $request->email)->exists()){
+            return response()->json(['error'=> "Email Already Exists!"],401);
+        }
+        $validator = Validator::make($request->all(),[
+            'name'=> 'required',
+            'email'=> 'required|email',
+            'password'=> 'required',
+        ]);
+        if ($validator->valid()) {
+            return response()->json(['message'=> $validator->errors()],401);
+        }
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'randtoken' => Str::random(30)
         ]);
-
         $credentials = $request->only('email', 'password');
-        Auth::attempt($credentials);
-        $request->session()->regenerate();
-        return redirect()->route('index')
-            ->with('success','You have successfully registered kindly activate your account');
+        $token = JWTAuth::attempt($credentials);
+        return response()->json(compact('credentials','token') ,200);
     }
-    public function editUserData(Request $request){
-        $this->validate($request,[
-            'name' => "required",
-            'email' => "required|email",
-        ]);
-        User::whereId(auth()->user()->id)->update([
-            'email' => $request->email,
-            'name' => $request->name
-        ]);
-        return redirect("/dashboard")->with("success","Successfully updated user data.");
+    public function edit(Request $request){
+        $token = substr($request->header('Authorization'),6);
+        $user = JWTAuth::toUser($token);
+        return response(compact('user') ,200);
     }
     public function updatePassword(Request $request)
-{
+    {
         # Validation
         $request->validate([
             'old_password' => 'required',
@@ -75,7 +84,7 @@ class APIUserController extends Controller
         ]);
 
         return back()->with("status", "Password changed successfully!");
-}
+    }
     public function logout()
     {
         auth()->logout();

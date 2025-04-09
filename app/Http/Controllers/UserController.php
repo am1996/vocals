@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\ViewErrorBag;
 class UserController extends Controller
 {
     public function getLogin()
@@ -39,6 +39,7 @@ class UserController extends Controller
 
     public function register(UserRequest $request)
     {
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
